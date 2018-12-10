@@ -30,7 +30,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Marker marker_1;
     private DatabaseManager database;
     private Button button;
-    private List<Maps>mapsList;
+    private List<Maps>mapsList ;
     private MapsDao mapsDao;
 
     @Override
@@ -41,11 +41,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapsList = new ArrayList<>();
         database = new DatabaseManager(this);
         mapsDao = new MapsDao(database);
-        for (int i = 0;i<20;i++){
-            Maps map =  new Maps("22","33");
-            mapsDao.insertMaps(map);
-            mapsList.add(map);
-        }
         mapsList =  mapsDao.getAllMasps();
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,12 +66,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        final  LatLng a = new LatLng(22,22);
-        mMap.addMarker(new MarkerOptions().position(a).title("DeMo"));
-        for (int d = 0; d < mapsList.size(); d++) {
-            double la = Double.parseDouble(mapsList.get(d).getKinhdo());
-            double tu = Double.parseDouble(mapsList.get(d).getVido());
-            final LatLng sydney = new LatLng(la, tu);
+        final LatLng latLng = new LatLng(99,99);
+        mMap.addMarker(new MarkerOptions().position(latLng).title("Marker in FPT Poly"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        for(Maps mapss:mapsList){
+//            double la = Double.parseDouble(mapss.getKinhdo());
+//            double tu = Double.parseDouble(mapss.getVido());
+            final LatLng sydney = new LatLng(mapss.getKinhdo(), mapss.getVido());
             mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in FPT Poly"));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         }
@@ -93,72 +89,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                     @Override
                     public boolean onMarkerClick(final Marker marker) {
-
                         final Dialog dialog=new Dialog(MapsActivity.this);
                         dialog.setContentView(R.layout.dialog);
-//                        dialog.findViewById(R.id.them).setOnClickListener(new View.OnClickListener() {
-//                            @Override
-//                            public void onClick(View v) {
-//                                dialog.findViewById(R.id.layout).setVisibility(View.VISIBLE);
-//                                dialog.findViewById(R.id.layout1).setVisibility(View.GONE);
-//                                dialog.findViewById(R.id.thaydoi).setOnClickListener(new View.OnClickListener() {
-//                                    @Override
-//                                    public void onClick(View v) {
-//                                        EditText editText= dialog.findViewById(R.id.latitude);
-//                                        EditText editText1= dialog.findViewById(R.id.longitude);
-//                                        String latitude=editText.getText().toString();
-//                                        String longitude=editText1.getText().toString();
-//                                        if (!latitude.isEmpty() && !longitude.isEmpty()) {
-//                                            Maps maps = new Maps(latitude, longitude);
-//                                            mapsDao.insertMaps(maps);
-//                                            Toast.makeText(MapsActivity.this, "Theem Thanh Cong", Toast.LENGTH_SHORT).show();
-//                                            mapsList.add(maps);
-//                                            dialog.dismiss();
-//                                            for (int d = 0; d < mapsList.size(); d++) {
-//                                                double la = Double.parseDouble(mapsList.get(d).getKinhdo());
-//                                                double tu = Double.parseDouble(mapsList.get(d).getVido());
-//                                                final LatLng sydney = new LatLng(la, tu);
-//                                                mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in FPT Poly"));
-//                                                mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-//                                            }
-//                                        }
-//
-//                                    }
-//                                });
-//                            }
-//                        });
                         dialog.findViewById(R.id.sua).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                final EditText editText= dialog.findViewById(R.id.latitude);
-                                final EditText editText1= dialog.findViewById(R.id.longitude);
-                                dialog.findViewById(R.id.layout).setVisibility(View.VISIBLE);
-                                dialog.findViewById(R.id.layout1).setVisibility(View.GONE);
-                                final LatLng latLng = marker.getPosition();
-                                    editText.setText(latLng.latitude+"");
-                                    editText1.setText(latLng.longitude+"");
-                                dialog.findViewById(R.id.thaydoi).setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        String latitude = editText.getText().toString().trim();
-                                        String longitude = editText1.getText().toString().trim();
-                                        if (latitude.equals("") || longitude.equals("")) {
-                                            Toast.makeText(MapsActivity.this, "Nhap Day du?", Toast.LENGTH_SHORT).show();
-                                        } else {
-                                            for (int i = 0; i < mapsList.size(); i++) {
-                                                Maps maps = mapsList.get(i);
-                                                maps.setKinhdo(latitude);
-                                                maps.setVido(longitude);
-                                                mapsDao.updateMaps(maps);
-                                                mapsList.set(i,maps);
-                                                mapsList.add(i,maps);
-                                                Toast.makeText(MapsActivity.this, "Doi Thanh Cong", Toast.LENGTH_SHORT).show();
-                                                dialog.dismiss();
-                                            }
+                                Maps map = mapsDao.getViTriByMaps(String.valueOf(marker.getTitle()));
+                                edit(map);
 
-                                        }
-                                    }
-                                });
                             }
                         });
                         dialog.show();
@@ -168,6 +106,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
 
     }
+public void edit(final Maps map){
+    final android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MapsActivity.this);
+    builder.setTitle("Sửa !");
+    LayoutInflater inflater = (LayoutInflater) builder.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    final View viewDialog = inflater.inflate(R.layout.dialog_editmap, null);
+    final EditText edtedkinhdo = viewDialog.findViewById(R.id.edteditkd);
+    final EditText edtedvido = viewDialog.findViewById(R.id.edteditvd);
+    builder.setView(viewDialog);
+        edtedkinhdo.setText(String.valueOf(map.getKinhdo()));
+        edtedvido.setText(String.valueOf(map.getVido()));
+    builder.setPositiveButton("Sửa", new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i) {
+            String edkinhdo = edtedkinhdo.getText().toString();
+            String edvido = edtedvido.getText().toString();
+//                            maps.setKinhdo(edkinhdo);
+//                            maps.setVido(edvido);
+                            mapsDao.updateMaps(map);
+
+        }
+    });
+    builder.setNegativeButton("Hủy", new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i) {
+
+        }
+    });
+    builder.setCancelable(true);
+    builder.show();
+}
     public void add(){
               final android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MapsActivity.this);
                         builder.setTitle("Lưu kết quả !");
@@ -186,14 +154,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 } else {
                                     Maps mapscheck = mapsDao.getMapsId(kinhdo);
                                     if (mapscheck==null){
-                                        Maps maps = new Maps(kinhdo,vido);
+                                        Maps maps = new Maps("",Long.parseLong(kinhdo),Long.parseLong(vido));
                                         mapsDao.insertMaps(maps);
                                         Toast.makeText(MapsActivity.this, "Theem Thanh Cong", Toast.LENGTH_SHORT).show();
                                         mapsList.add(maps);
-                                        for (int d = 0; d < mapsList.size(); d++) {
-                                            double la = Double.parseDouble(mapsList.get(d).getKinhdo());
-                                            double tu = Double.parseDouble(mapsList.get(d).getVido());
-                                            final LatLng sydney = new LatLng(la,tu);
+                                        for(Maps mapss:mapsList){
+//            double la = Double.parseDouble(mapss.getKinhdo());
+//            double tu = Double.parseDouble(mapss.getVido());
+                                            final LatLng sydney = new LatLng(mapss.getKinhdo(), mapss.getVido());
                                             mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in FPT Poly"));
                                             mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
                                         }

@@ -18,6 +18,7 @@ public class MapsDao implements Contanst {
     public long insertMaps(Maps maps){
         SQLiteDatabase sqLiteDatabase  = database.getWritableDatabase();
         ContentValues values = new ContentValues();
+        values.put(COLUMN_ID, maps.get_id());
         values.put(COLUMN_KINHDO,maps.getKinhdo());
         values.put(COLUMN_VIDO,maps.getVido());
         Long id = sqLiteDatabase.insert(TABLE_MAPS,null,values);
@@ -33,8 +34,8 @@ public class MapsDao implements Contanst {
         if (cursor.moveToFirst()) {
             do {
                 Maps maps1 = new Maps();
-                maps1.setKinhdo(cursor.getString(cursor.getColumnIndex(COLUMN_KINHDO)));
-                maps1.setVido(cursor.getString(cursor.getColumnIndex(COLUMN_VIDO)));
+                maps1.setKinhdo(cursor.getLong(0));
+                maps1.setVido(cursor.getLong(1));
                 maps.add(maps1);
             } while (cursor.moveToNext());
         }
@@ -42,14 +43,14 @@ public class MapsDao implements Contanst {
     }
     public int deleteMasp(Maps map) {
         SQLiteDatabase sqLiteDatabase = database.getWritableDatabase();
-        return sqLiteDatabase.delete(TABLE_MAPS, COLUMN_KINHDO + " =?", new String[]{map.get_id()});
+        return sqLiteDatabase.delete(TABLE_MAPS, COLUMN_KINHDO + " =?", new String[]{String.valueOf(map.get_id())});
     }
     public Maps getMapsId(String idMaps) {
         Maps maps = null;
         SQLiteDatabase sqLiteDatabase = database.getReadableDatabase();
         Cursor cursor = sqLiteDatabase.query(
                 TABLE_MAPS,
-                new String[]{COLUMN_KINHDO, COLUMN_VIDO},
+                new String[]{COLUMN_ID,COLUMN_KINHDO, COLUMN_VIDO},
                 COLUMN_KINHDO + " =?",
                 new String[]{idMaps},
                 null, null, null);
@@ -57,8 +58,8 @@ public class MapsDao implements Contanst {
             String mapskinhdo = cursor.getString(cursor.getColumnIndex(COLUMN_KINHDO));
             String mapsvido = cursor.getString(cursor.getColumnIndex(COLUMN_VIDO));
             maps = new Maps();
-            maps.setKinhdo(mapskinhdo);
-            maps.setVido(mapsvido);
+            maps.setKinhdo(Long.getLong(mapskinhdo));
+            maps.setVido(Long.getLong(mapsvido));
 
 
         }
@@ -73,6 +74,25 @@ public class MapsDao implements Contanst {
         return  sqLiteDatabase.update(TABLE_MAPS,
                 values,
                 COLUMN_KINHDO + "=?",
-                new String[]{maps.getKinhdo()});
+                new String[]{Long.toString(maps.getKinhdo())});
+    }
+    public Maps getViTriByMaps(String kd) {
+        Maps maps = null;
+        SQLiteDatabase sqLiteDatabase = database.getWritableDatabase();
+        Cursor cursor = sqLiteDatabase.query(TABLE_MAPS,
+                new String[]{ COLUMN_ID,COLUMN_KINHDO, COLUMN_VIDO},
+                COLUMN_ID + "=?",
+                new String[]{kd},
+                null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            maps = new Maps();
+            maps.set_id(cursor.getString(cursor.getColumnIndex(COLUMN_ID)));
+            maps.setKinhdo(cursor.getLong(cursor.getColumnIndex(COLUMN_KINHDO)));
+            maps.setVido(cursor.getLong(cursor.getColumnIndex(COLUMN_VIDO)));
+
+        }
+        return maps;
+
+
     }
 }
